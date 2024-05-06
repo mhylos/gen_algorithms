@@ -2,8 +2,10 @@ import customtkinter
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg)
 from matplotlib.figure import Figure
-from gen_algorithm import genetic_algorithm, generate_random_population
+from gen_algorithm import genetic_algorithm, generate_random_population, get_max_x, get_max_y
 import statistics
+import matplotlib.patches as patches
+from matplotlib.path import Path
 
 WIDTH = 800
 HEIGHT = 700
@@ -173,6 +175,7 @@ def create_generations():
     for widget in results_frame.winfo_children():
         widget.destroy()
     global population_size, generations, best_percentage, random_percentage, mutation_rate, ms_per_generation, stop
+    max_x, max_y = get_max_x() + 100, get_max_y() + 100
     stop = False
     population_size = int(population_input.get())
     generations = int(generations_input.get())
@@ -180,21 +183,56 @@ def create_generations():
     random_percentage = selection_random_slider.get()
     mutation_rate = mutation_slider.get()
 
-    population = list(generate_random_population(population_size))
+    population = list(
+        generate_random_population(population_size))
 
-    def update_graph(i):
-        nonlocal population
-        population = genetic_algorithm(
-            population, best_percentage / 100, random_percentage / 100, mutation_rate)
+    population, distance_matrix = genetic_algorithm(
+        population, best_percentage / 100, random_percentage / 100, mutation_rate)
 
-        best_path = max(population, key=lambda x: x.distance())
-        mean = int(statistics.mean([bp.distance() for bp in population]))
-        std = int(statistics.stdev([bp.distance() for bp in population]))
+    fig = Figure(figsize=(4, 4), dpi=100)
+    plot = fig.add_subplot(111)
+    plot.set_xlim(0, max_x)
+    plot.set_ylim(0, max_y)
+    canvas = FigureCanvasTkAgg(fig, master=results_frame)
+    canvas.get_tk_widget().pack(side="top", fill="both", expand=True, padx=10, pady=10)
+
+    def update_graph(gen_number: int):
+        print(gen_number)
+        nonlocal population, distance_matrix
+        population, distance_matrix = genetic_algorithm(
+            population, best_percentage / 100, random_percentage / 100, mutation_rate, distance_matrix)
+
+        best_path = min(population, key=lambda x: x.distance(distance_matrix))
+        mean = int(statistics.mean(
+            [path.distance(distance_matrix) for path in population]))
+        std = int(statistics.stdev(
+            [path.distance(distance_matrix) for path in population]))
         coefvar = f'{std / mean * 100:.2f} %'
 
         coefvar_value_label.configure(text=coefvar)
         mean_value_label.configure(text=str(mean))
-        best_value_label.configure(text=str(best_path.distance()))
+        best_value_label.configure(
+            text=str(best_path.distance(distance_matrix)))
+
+        points = [(best_path.coords[i].x, best_path.coords[i].y)
+                  for i in range(len(best_path.coords))]
+
+        plot.clear()
+        plot.set_xlim(0, max_x)
+        plot.set_ylim(0, max_y)
+        for i in range(len(points) - 1):
+            plot.add_patch(patches.FancyArrowPatch(
+                (points[i][0], points[i][1]),
+                (points[i + 1][0], points[i + 1][1]),
+                arrowstyle='->',
+                mutation_scale=15,
+            ))
+
+        for path in best_path.coords:
+            plot.plot(path.x, path.y, 'o')
+            plot.text(path.x, path.y, f'{path.name}', fontsize=8)
+
+        canvas.draw()
 
         # print(
         #     f'Generacion {i}:\n\nMejor:\n{best_bp}')
@@ -202,7 +240,7 @@ def create_generations():
         #       for bp in population]) + '\n\n\n')
         # x_values.append(i)
         # y_values.append(best_bp.get_value())
-        # current_generation_value_label.configure(text=str(i + 1))
+        current_generation_value_label.configure(text=str(gen_number + 1))
 
         # plot.clear()
         # plot.plot(x_values, y_values)
@@ -212,10 +250,11 @@ def create_generations():
             print("Parado")
             return
 
-        if i < generations - 1:
-            results_frame.after(ms_per_generation, update_graph, i + 1)
+        if gen_number < generations - 1:
+            results_frame.after(ms_per_generation,
+                                update_graph, gen_number + 1)
 
-    results_frame.after(ms_per_generation, update_graph, 0)
+    results_frame.after(ms_per_generation, update_graph, 2)
 
 
 generate_button = customtkinter.CTkButton(

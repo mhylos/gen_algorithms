@@ -3,8 +3,9 @@ import numpy as np
 
 
 class Coords:
-    def __init__(self, matrix_index: int, x: int, y: int):
+    def __init__(self, matrix_index: int, x: int, y: int, name: str):
         self.matrix_index = matrix_index
+        self.name = name
         self.x = x
         self.y = y
 
@@ -33,14 +34,21 @@ class Path:
 
 
 def read_csv():
-    with open('coords.csv') as f:
+    with open('cities3.csv') as f:
         for index, line in enumerate(f):
-            x, y = line.strip().split(',')
-            yield Coords(index, int(x), int(y))
+            name, x, y = line.strip().split(',')
+            yield Coords(index, int(x), int(y), name)
 
 
 coords = list(read_csv())
-distances_matrix = np.zeros((len(coords), len(coords)))
+
+
+def get_max_x():
+    return max(coords, key=lambda coord: coord.x).x
+
+
+def get_max_y():
+    return max(coords, key=lambda coord: coord.y).y
 
 
 def generate_random_path():
@@ -72,8 +80,7 @@ def crossover(path1: Path, path2: Path):
     return Path(child_coords.coords + missing_coords)
 
 
-def selection(population: list[Path], best_percentage: float, random_percentage: float):
-    global distances_matrix
+def selection(population: list[Path], best_percentage: float, random_percentage: float, distances_matrix: np.ndarray):
     best = int(len(population) * best_percentage)
     randoms = int(len(population) * random_percentage)
 
@@ -83,15 +90,16 @@ def selection(population: list[Path], best_percentage: float, random_percentage:
     return sorted_population[:best] + sample(sorted_population[best:], randoms)
 
 
-def genetic_algorithm(population: list[Path], best_percentage: float, random_percentage: float, mutation_rate=int):
-    new_generation = selection(population, best_percentage, random_percentage)
+def genetic_algorithm(population: list[Path], best_percentage: float, random_percentage: float, mutation_rate=int, distances_matrix=np.zeros((len(coords), len(coords)))):
+    new_generation = selection(
+        population, best_percentage, random_percentage, distances_matrix)
     while len(new_generation) < len(population):
         parent1, parent2 = sample(population, 2)
         child = crossover(parent1, parent2)
         new_generation.append(mutation(child, mutation_rate))
-    for path in new_generation:
-        print(path, path.distance(distances_matrix))
-    return new_generation
+    # for path in new_generation:
+    #     print(path, path.distance(distances_matrix))
+    return new_generation, distances_matrix
 
 
 # population = list(generate_random_population(50))

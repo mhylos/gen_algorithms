@@ -58,50 +58,59 @@ options_title = customtkinter.CTkLabel(
     options_frame, text="Opciones", fg_color="transparent", font=title_font)
 options_title.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="w")
 
+# Tamaño de la mochila
+backpack_size_label = customtkinter.CTkLabel(
+    options_frame, text="Tamaño de la mochila: ", fg_color="transparent")
+backpack_size_label.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+backpack_size_input = customtkinter.CTkEntry(
+    options_frame, width=50)
+backpack_size_input.insert(0, 100)
+backpack_size_input.grid(row=1, column=1, padx=10, sticky="w")
+
 # Tamaño de la población
 population_label = customtkinter.CTkLabel(
     options_frame, text="Tamaño de la población: ", fg_color="transparent")
-population_label.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+population_label.grid(row=2, column=0, padx=10, pady=10, sticky="w")
 population_input = customtkinter.CTkEntry(
     options_frame, width=50)
 population_input.insert(0, 50)
-population_input.grid(row=1, column=1, padx=10, sticky="w")
+population_input.grid(row=2, column=1, padx=10, sticky="w")
 
 # Número de generaciones
 generations_label = customtkinter.CTkLabel(
     options_frame, text="Número de generaciones: ", fg_color="transparent")
-generations_label.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+generations_label.grid(row=3, column=0, padx=10, pady=10, sticky="w")
 generations_input = customtkinter.CTkEntry(
     options_frame, width=50)
 generations_input.insert(0, 100)
-generations_input.grid(row=2, column=1, padx=10, sticky="w")
+generations_input.grid(row=3, column=1, padx=10, sticky="w")
 
 # Seleccion
 
 # Mejores
 best_selection_label = customtkinter.CTkLabel(
     options_frame, text="Selección de mejores", fg_color="transparent")
-best_selection_label.grid(row=3, column=0, padx=10, pady=10, sticky="w")
+best_selection_label.grid(row=4, column=0, padx=10, pady=10, sticky="w")
 selection_best_value_label = customtkinter.CTkLabel(
     options_frame, text=f"{int(best_percentage)} %", fg_color="transparent", width=40)
-selection_best_value_label.grid(row=4, column=1, padx=10, sticky="w")
+selection_best_value_label.grid(row=5, column=1, padx=10, sticky="w")
 selection_best_slider = customtkinter.CTkSlider(
     options_frame, from_=0, to=100)
 selection_best_slider.set(best_percentage)
-selection_best_slider.grid(row=4, column=0, padx=10, sticky="w")
+selection_best_slider.grid(row=5, column=0, padx=10, sticky="w")
 
 # Aleatoria
 random_selection_label = customtkinter.CTkLabel(
     options_frame, text="Selección aleatoria", fg_color="transparent")
-random_selection_label.grid(row=5, column=0, padx=10, pady=10, sticky="w")
+random_selection_label.grid(row=6, column=0, padx=10, pady=10, sticky="w")
 selection_random_value_label = customtkinter.CTkLabel(
     options_frame, text=f"{int(random_percentage)} %", fg_color="transparent", width=40)
 selection_random_value_label.grid(
-    row=6, column=1, padx=10, sticky="w")
+    row=7, column=1, padx=10, sticky="w")
 selection_random_slider = customtkinter.CTkSlider(
     options_frame, from_=0, to=100)
 selection_random_slider.set(random_percentage)
-selection_random_slider.grid(row=6, column=0, padx=10, sticky="w")
+selection_random_slider.grid(row=7, column=0, padx=10, sticky="w")
 
 selection_best_slider.bind("<ButtonRelease-1>", lambda e: change_best_percentage(
     selection_best_value_label, selection_best_slider))
@@ -111,14 +120,14 @@ selection_random_slider.bind("<ButtonRelease-1>", lambda e: change_random_percen
 # Mutación
 mutation_label = customtkinter.CTkLabel(
     options_frame, text="Probabilidad de mutación", fg_color="transparent")
-mutation_label.grid(row=7, column=0, padx=10, pady=10, sticky="w")
+mutation_label.grid(row=8, column=0, padx=10, pady=10, sticky="w")
 mutation_value_label = customtkinter.CTkLabel(
     options_frame, text=f"{10} %", fg_color="transparent", width=40)
-mutation_value_label.grid(row=8, column=1, padx=10, sticky="w")
+mutation_value_label.grid(row=9, column=1, padx=10, sticky="w")
 mutation_slider = customtkinter.CTkSlider(
     options_frame, from_=0, to=100)
 mutation_slider.set(10)
-mutation_slider.grid(row=8, column=0, padx=10, sticky="w")
+mutation_slider.grid(row=9, column=0, padx=10, sticky="w")
 
 mutation_slider.bind("<ButtonRelease-1>", lambda e: change_mutation_rate(
     mutation_value_label, mutation_slider)
@@ -172,15 +181,16 @@ stop = False
 def create_generations():
     for widget in results_frame.winfo_children():
         widget.destroy()
-    global population_size, generations, best_percentage, random_percentage, mutation_rate, ms_per_generation, stop
+    global population_size, generations, best_percentage, random_percentage, mutation_rate, max_weight, ms_per_generation, stop
     stop = False
     population_size = int(population_input.get())
     generations = int(generations_input.get())
     best_percentage = selection_best_slider.get()
     random_percentage = selection_random_slider.get()
     mutation_rate = mutation_slider.get()
+    max_weight = int(backpack_size_input.get())
 
-    population = generate_population(population_size)
+    population = generate_population(population_size, max_weight)
 
     x_values = []
     y_values = []
@@ -195,7 +205,7 @@ def create_generations():
     def update_graph(i):
         nonlocal population
         population = genetic_algorithm(
-            population, best_percentage / 100, random_percentage / 100, mutation_rate)
+            population, best_percentage / 100, random_percentage / 100, mutation_rate, max_weight)
 
         best_bp = max(population, key=lambda x: x.get_value())
         mean = int(statistics.mean([bp.get_value() for bp in population]))
@@ -230,7 +240,7 @@ def create_generations():
 
 generate_button = customtkinter.CTkButton(
     options_frame, text="Generar", command=create_generations)
-generate_button.grid(row=9, column=0, columnspan=2,
+generate_button.grid(row=10, column=0, columnspan=2,
                      padx=10, pady=20, sticky="nsew", ipadx=10, ipady=10)
 
 # Acelerar el proceso
@@ -244,7 +254,7 @@ def acceleration():
 acceleration_button = customtkinter.CTkButton(
     options_frame, text="Acelerar la generación", command=acceleration, fg_color="yellow3", hover_color="yellow", text_color="black")
 
-acceleration_button.grid(row=10, column=0, columnspan=2,
+acceleration_button.grid(row=11, column=0, columnspan=2,
                          padx=10, pady=20, sticky="nsew", ipadx=10, ipady=10)
 
 options_frame.grid(row=0, column=0, rowspan=2, padx=10, pady=10, sticky="nsew")
@@ -261,7 +271,7 @@ def stop_generation():
 
 stop_button = customtkinter.CTkButton(
     options_frame, text="Parar generación", command=stop_generation, fg_color="darkred", hover_color="red")
-stop_button.grid(row=11, column=0, columnspan=2,
+stop_button.grid(row=12, column=0, columnspan=2,
                  padx=10, pady=20, sticky="nsew", ipadx=10, ipady=10)
 
 

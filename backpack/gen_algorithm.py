@@ -59,16 +59,15 @@ def read_csv(file):
 
 
 ITEMS = read_csv('items.csv')
-MAX_WEIGHT = 17
 
 
-def encoding(items):
+def encoding(items, max_weight: int):
     weight = 0
     available_items = items.copy()
     selected_items = []
-    while weight < MAX_WEIGHT:
+    while weight < max_weight:
         item = sample(available_items, 1)[0]
-        if weight + item.weight > MAX_WEIGHT:
+        if weight + item.weight > max_weight:
             break
         selected_items.append(item)
         available_items.remove(item)
@@ -76,10 +75,10 @@ def encoding(items):
     return selected_items
 
 
-def generate_population(pop_size):
+def generate_population(pop_size: int, max_weight: int):
     population = []
     for i in range(pop_size):
-        generated_backpack = Backpack(encoding(ITEMS))
+        generated_backpack = Backpack(encoding(ITEMS, max_weight))
         # while generated_backpack.is_weight_exceeding(MAX_WEIGHT):
         #     print('Regenerating, weight exceeded ' + str(generated_backpack))
         #     generated_backpack = encoding(ITEMS)
@@ -87,27 +86,27 @@ def generate_population(pop_size):
     return population
 
 
-def crossover(parent1: Backpack, parent2: Backpack):
+def crossover(parent1: Backpack, parent2: Backpack, max_weight: int):
     child = Backpack(parent1.items.copy())
     for item in parent2.items:
         if item not in child.items:
             child.add_item(item)
 
-    while child.is_weight_exceeding(MAX_WEIGHT):
+    while child.is_weight_exceeding(max_weight):
         item = sample(child.items, 1)[0]
         child.remove_item(item)
 
     return child
 
 
-def mutation(bp: Backpack, mutation_rate: int):
+def mutation(bp: Backpack, mutation_rate: int, max_weight: int):
     if randint(0, 100) < mutation_rate:
         return bp
     item = sample(ITEMS, 1)[0]
     if item in bp.items:
         bp.remove_item(item)
     else:
-        if bp.get_weight() + item.weight > MAX_WEIGHT:
+        if bp.get_weight() + item.weight > max_weight:
             bp.remove_random()
         else:
             bp.add_item(item)
@@ -123,12 +122,13 @@ def selection(population: list[Backpack], best_percentage: float, random_percent
     return sorted_pop[:best] + sample(sorted_pop[best:], randoms)
 
 
-def genetic_algorithm(population: list[Backpack], best_percentage: float, random_percentage: float, mutation_rate=int):
-    new_generation = selection(population, best_percentage, random_percentage)
+def genetic_algorithm(population: list[Backpack], best_percentage: float, random_percentage: float, mutation_rate: int, max_weight: int):
+    new_generation = selection(
+        population, best_percentage, random_percentage)
     while len(new_generation) < len(population):
         parent1, parent2 = sample(new_generation, 2)
-        child = crossover(parent1, parent2)
-        new_generation.append(mutation(child, mutation_rate))
+        child = crossover(parent1, parent2, max_weight)
+        new_generation.append(mutation(child, mutation_rate, max_weight))
     # for bp in new_generation:
     #     print(bp)
     return new_generation
