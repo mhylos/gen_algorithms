@@ -6,7 +6,7 @@ from gen_algorithm import genetic_algorithm, generate_population
 import statistics
 
 WIDTH = 800
-HEIGHT = 700
+HEIGHT =700
 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
@@ -225,6 +225,8 @@ def create_generations():
         current_generation_value_label.configure(text=str(i + 1))
 
         plot.clear()
+        plot.set_xlabel("Generación")
+        plot.set_ylabel("Valor de la mochila")
         plot.plot(x_values, y_values)
         canvas.draw()
 
@@ -270,7 +272,7 @@ def stop_generation():
 
 
 stop_button = customtkinter.CTkButton(
-    options_frame, text="Parar generación", command=stop_generation, fg_color="darkred", hover_color="red")
+    options_frame, text="Detener generación", command=stop_generation, fg_color="darkred", hover_color="red")
 stop_button.grid(row=12, column=0, columnspan=2,
                  padx=10, pady=20, sticky="nsew", ipadx=10, ipady=10)
 

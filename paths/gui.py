@@ -175,7 +175,7 @@ def create_generations():
     for widget in results_frame.winfo_children():
         widget.destroy()
     global population_size, generations, best_percentage, random_percentage, mutation_rate, ms_per_generation, stop
-    max_x, max_y = get_max_x() + 100, get_max_y() + 100
+    max_x, max_y = get_max_x() + 10, get_max_y() + 10
     stop = False
     population_size = int(population_input.get())
     generations = int(generations_input.get())
@@ -190,14 +190,14 @@ def create_generations():
         population, best_percentage / 100, random_percentage / 100, mutation_rate)
 
     fig = Figure(figsize=(4, 4), dpi=100)
+    fig.suptitle('Mejor camino')
     plot = fig.add_subplot(111)
-    plot.set_xlim(0, max_x)
-    plot.set_ylim(0, max_y)
+    plot.set_xlim(-100, max_x)
+    plot.set_ylim(-40, max_y)
     canvas = FigureCanvasTkAgg(fig, master=results_frame)
     canvas.get_tk_widget().pack(side="top", fill="both", expand=True, padx=10, pady=10)
 
     def update_graph(gen_number: int):
-        print(gen_number)
         nonlocal population, distance_matrix
         population, distance_matrix = genetic_algorithm(
             population, best_percentage / 100, random_percentage / 100, mutation_rate, distance_matrix)
@@ -218,8 +218,8 @@ def create_generations():
                   for i in range(len(best_path.coords))]
 
         plot.clear()
-        plot.set_xlim(0, max_x)
-        plot.set_ylim(0, max_y)
+        plot.set_xlim(-100, max_x)
+        plot.set_ylim(-40, max_y)
         for i in range(len(points) - 1):
             plot.add_patch(patches.FancyArrowPatch(
                 (points[i][0], points[i][1]),
@@ -235,16 +235,11 @@ def create_generations():
         canvas.draw()
 
         # print(
-        #     f'Generacion {i}:\n\nMejor:\n{best_bp}')
-        # print(f'Poblacion: \n' + '\n'.join([str(bp)
-        #       for bp in population]) + '\n\n\n')
-        # x_values.append(i)
-        # y_values.append(best_bp.get_value())
-        current_generation_value_label.configure(text=str(gen_number + 1))
+        #     f'Generacion {gen_number}:\n\n')
+        # print(f'Poblacion: \n' + '\n'.join([str(path)
+        #       for path in population]) + '\n\n\n')
 
-        # plot.clear()
-        # plot.plot(x_values, y_values)
-        # canvas.draw()
+        current_generation_value_label.configure(text=str(gen_number + 1))
 
         if stop:
             print("Parado")
@@ -289,7 +284,7 @@ def stop_generation():
 
 
 stop_button = customtkinter.CTkButton(
-    options_frame, text="Parar generación", command=stop_generation, fg_color="darkred", hover_color="red")
+    options_frame, text="Detener generación", command=stop_generation, fg_color="darkred", hover_color="red")
 stop_button.grid(row=11, column=0, columnspan=2,
                  padx=10, pady=20, sticky="nsew", ipadx=10, ipady=10)
 

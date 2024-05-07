@@ -54,11 +54,14 @@ def read_csv(file):
     with open(file, newline='') as f:
         reader = csv.reader(f)
         for row in reader:
-            items.append(Item(row[0], int(row[1]), int(row[2])))
+            name = row[0]
+            value = int(row[1])
+            weight = int(row[2])
+            items.append(Item(name, weight, value))
     return items
 
 
-ITEMS = read_csv('items.csv')
+ITEMS = read_csv('mochila_profe.csv')
 
 
 def encoding(items, max_weight: int):

@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Coords:
-    def __init__(self, matrix_index: int, x: int, y: int, name: str):
+    def __init__(self, matrix_index: int, x: float, y: float, name: str):
         self.matrix_index = matrix_index
         self.name = name
         self.x = x
@@ -24,7 +24,7 @@ class Path:
         self.coords = coords
 
     def __str__(self):
-        return ' -> '.join(str(coord) for coord in self.coords)
+        return ' -> '.join(str(coord.name) for coord in self.coords)
 
     def distance(self, distances_matrix: np.ndarray):
         return sum(
@@ -34,10 +34,10 @@ class Path:
 
 
 def read_csv():
-    with open('cities3.csv') as f:
+    with open('ciudades_profe.csv') as f:
         for index, line in enumerate(f):
             name, x, y = line.strip().split(',')
-            yield Coords(index, int(x), int(y), name)
+            yield Coords(index, float(x), float(y), name)
 
 
 coords = list(read_csv())
@@ -97,8 +97,8 @@ def genetic_algorithm(population: list[Path], best_percentage: float, random_per
         parent1, parent2 = sample(population, 2)
         child = crossover(parent1, parent2)
         new_generation.append(mutation(child, mutation_rate))
-    # for path in new_generation:
-    #     print(path, path.distance(distances_matrix))
+    for path in new_generation:
+        print(path, path.distance(distances_matrix))
     return new_generation, distances_matrix
 
 
